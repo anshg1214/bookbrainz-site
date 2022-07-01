@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>client/entity-editor/button-bar/button-bar.js - Documentation</title>
+    <title>client/entity-editor/author-credit-editor/author-credit-editor.js - Documentation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -29,7 +29,7 @@
 
 <div id="main">
     
-    <h1 class="page-title">client/entity-editor/button-bar/button-bar.js</h1>
+    <h1 class="page-title">client/entity-editor/author-credit-editor/author-credit-editor.js</h1>
     
 
     
@@ -48,28 +48,33 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+require("core-js/modules/es.array.map.js");
+
+var _keys3 = _interopRequireDefault(require("lodash/keys"));
+
 var _reactBootstrap = require("react-bootstrap");
 
-var _actions = require("./actions");
+var _authorCreditDisplay = _interopRequireDefault(require("../../components/author-credit-display"));
 
-var _common = require("../validators/common");
+var _authorCreditRow = _interopRequireDefault(require("./author-credit-row"));
 
-var _aliasButton = _interopRequireDefault(require("./alias-button"));
-
-var _identifierButton = _interopRequireDefault(require("./identifier-button"));
+var _reactFontawesome = require("@fortawesome/react-fontawesome");
 
 var _propTypes = _interopRequireDefault(require("prop-types"));
 
 var _react = _interopRequireDefault(require("react"));
 
-var _actions2 = require("../alias-editor/actions");
-
-var _actions3 = require("../identifier-editor/actions");
+var _actions = require("./actions");
 
 var _reactRedux = require("react-redux");
 
+var _utils = require("../../helpers/utils");
+
+var _freeSolidSvgIcons = require("@fortawesome/free-solid-svg-icons");
+
 /*
- * Copyright (C) 2016  Ben Ockmore
+ * Copyright (C) 2020  Sean Burke
+ *               2020  Nicolas Pelletier
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,86 +92,80 @@ var _reactRedux = require("react-redux");
  */
 
 /**
- * Container component. This component renders three buttons in a horizontal
- * row allowing the user to open the AliasEditor (AliasButton), add a
- * disambiguation to the entity and open the IdentifierEditor
- * (IdentifierButton).
+ * Container component. The AuthorCreditEditor component contains a number of
+ * AuthorCreditRow elements, and renders these inside a modal, which appears when
+ * the show property of the component is set.
  *
  * @param {Object} props - The properties passed to the component.
- * @param {number} props.numAliases - The number of aliases present in
- *        the AliasEditor - passed to the AliasButton component.
- * @param {number} props.numIdentifiers - The number of identifiers present in
- *        the IdentifierEditor - passed to the IdentiferButton component.
- * @param {Function} props.onAliasButtonClick - A function to be called when the
- *        AliasButton is clicked.
- * @param {Function} props.onIdentifierButtonClick - A function to be called
- *        when the IdentifierButton is clicked.
- * @returns {ReactElement} React element containing the rendered ButtonBar.
+ * @param {Object} props.authorCredit - The Author credit object containing rows
+ *        to be rendered in the editor.
+ * @param {Function} props.onAddAuthorCreditRow - A function to be called when the
+ *        button to add an Author is clicked.
+ * @param {Function} props.onClose - A function to be called when the
+ *        modal is closed by a button click or clicking outside the modal.
+ * @param {boolean} props.showEditor - A boolean indicating whether to show the modal or not.
+ * @returns {ReactElement} React element containing the rendered
+ *          AuthorCreditEditor modal.
  */
-function ButtonBar(_ref) {
-  var aliasesInvalid = _ref.aliasesInvalid,
-      identifiersInvalid = _ref.identifiersInvalid,
-      numAliases = _ref.numAliases,
-      numIdentifiers = _ref.numIdentifiers,
-      onAliasButtonClick = _ref.onAliasButtonClick,
-      onIdentifierButtonClick = _ref.onIdentifierButtonClick;
-  return /*#__PURE__*/_react.default.createElement("div", null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Row, {
-    className: "margin-top-1"
-  }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
-    className: "text-center",
-    lg: 6
-  }, /*#__PURE__*/_react.default.createElement(_aliasButton.default, {
-    aliasesInvalid: aliasesInvalid,
-    numAliases: numAliases,
-    onClick: onAliasButtonClick
-  })), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Col, {
-    className: "text-center",
-    lg: 6
-  }, /*#__PURE__*/_react.default.createElement(_identifierButton.default, {
-    className: "btn wrap",
-    identifiersInvalid: identifiersInvalid,
-    numIdentifiers: numIdentifiers,
-    onClick: onIdentifierButtonClick
-  }))));
-}
-
-ButtonBar.displayName = 'ButtonBar';
-ButtonBar.propTypes = {
-  aliasesInvalid: _propTypes.default.bool.isRequired,
-  identifiersInvalid: _propTypes.default.bool.isRequired,
-  numAliases: _propTypes.default.number.isRequired,
-  numIdentifiers: _propTypes.default.number.isRequired,
-  onAliasButtonClick: _propTypes.default.func.isRequired,
-  onIdentifierButtonClick: _propTypes.default.func.isRequired
+var AuthorCreditEditor = function AuthorCreditEditor(_ref) {
+  var authorCredit = _ref.authorCredit,
+      onAddAuthorCreditRow = _ref.onAddAuthorCreditRow,
+      onClose = _ref.onClose,
+      showEditor = _ref.showEditor;
+  return /*#__PURE__*/_react.default.createElement(_reactBootstrap.Modal, {
+    show: showEditor,
+    size: "lg",
+    onHide: onClose
+  }, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Modal.Header, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Modal.Title, null, "Edit Author credit")), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Modal.Body, null, /*#__PURE__*/_react.default.createElement("p", null, "Author credits indicate who is the main credited Author (or Authors) for Editions, and how they are credited. They consist of Authors, with (optionally) their names as credited in the specific Edition (i.e. on the cover), and join phrases between them. Keep in mind that join phrases should include spaces before and after if you want any to appear in the final credit."), /*#__PURE__*/_react.default.createElement("hr", null), /*#__PURE__*/_react.default.createElement("dl", null, /*#__PURE__*/_react.default.createElement("dt", null, "Preview of the final Author credit:"), /*#__PURE__*/_react.default.createElement("dd", null, /*#__PURE__*/_react.default.createElement(_authorCreditDisplay.default, {
+    names: authorCredit
+  }))), /*#__PURE__*/_react.default.createElement("hr", {
+    className: "thin"
+  }), /*#__PURE__*/_react.default.createElement("div", null, (0, _keys3.default)(authorCredit).map(function (rowId) {
+    return /*#__PURE__*/_react.default.createElement(_authorCreditRow.default, {
+      index: rowId // eslint-disable-next-line react/no-array-index-key
+      ,
+      key: rowId
+    });
+  }))), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Modal.Footer, null, /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+    variant: "success",
+    onClick: onAddAuthorCreditRow
+  }, /*#__PURE__*/_react.default.createElement(_reactFontawesome.FontAwesomeIcon, {
+    icon: _freeSolidSvgIcons.faPlus
+  }), "\xA0Add another author"), /*#__PURE__*/_react.default.createElement(_reactBootstrap.Button, {
+    variant: "warning",
+    onClick: onClose
+  }, "Close")));
 };
 
-function mapStateToProps(rootState, _ref2) {
-  var identifierTypes = _ref2.identifierTypes;
+AuthorCreditEditor.displayName = 'AuthorCreditEditor';
+AuthorCreditEditor.propTypes = {
+  authorCredit: _propTypes.default.object.isRequired,
+  onAddAuthorCreditRow: _propTypes.default.func.isRequired,
+  onClose: _propTypes.default.func.isRequired,
+  showEditor: _propTypes.default.bool
+};
+AuthorCreditEditor.defaultProps = {
+  showEditor: false
+};
+
+function mapStateToProps(state) {
   return {
-    aliasesInvalid: !(0, _common.validateAliases)(rootState.get('aliasEditor')),
-    identifiersInvalid: !(0, _common.validateIdentifiers)(rootState.get('identifierEditor'), identifierTypes),
-    numAliases: rootState.get('aliasEditor').size,
-    numIdentifiers: rootState.get('identifierEditor').size
+    authorCredit: (0, _utils.convertMapToObject)(state.get('authorCreditEditor'))
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    onAliasButtonClick: function onAliasButtonClick() {
-      dispatch((0, _actions.showAliasEditor)());
-      dispatch((0, _actions2.addAliasRow)());
-    },
-    onIdentifierButtonClick: function onIdentifierButtonClick() {
-      dispatch((0, _actions.showIdentifierEditor)());
-      dispatch((0, _actions3.addIdentifierRow)());
+    onAddAuthorCreditRow: function onAddAuthorCreditRow() {
+      return dispatch((0, _actions.addAuthorCreditRow)());
     }
   };
 }
 
-var _default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(ButtonBar);
+var _default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(AuthorCreditEditor);
 
 exports.default = _default;
-//# sourceMappingURL=button-bar.js.map</code></pre>
+//# sourceMappingURL=author-credit-editor.js.map</code></pre>
         </article>
     </section>
 
